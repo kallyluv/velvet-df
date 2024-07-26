@@ -2,10 +2,17 @@ package session
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+	"velvet/game"
+	"velvet/perm"
+	"velvet/utils"
+
 	"github.com/df-mc/atomic"
 	"github.com/df-mc/dragonfly/server/block"
-	"github.com/df-mc/dragonfly/server/entity"
-	"github.com/df-mc/dragonfly/server/entity/damage"
+	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/scoreboard"
@@ -15,13 +22,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/sandertv/gophertunnel/minecraft/text"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
-	"velvet/game"
-	"velvet/perm"
-	"velvet/utils"
 )
 
 type Session struct {
@@ -125,7 +125,7 @@ func New(p *player.Player, rank *perm.Rank, kills, deaths uint32, deviceID strin
 			}
 			held, _ := s.Player.HeldItems()
 			if _, ok := held.Item().(item.Stick); ok && strings.EqualFold(s.Player.World().Name(), utils.Config.World.Build) {
-				s.Player.Move(entity.DirectionVector(s.Player).Mul(2), 0, 0)
+				s.Player.Move(s.Player.Rotation().Vec3().Mul(2), 0, 0)
 			}
 		}
 	}()
@@ -310,7 +310,7 @@ func (s *Session) StartBleeding() {
 				return
 			}
 			s.Player.World().AddParticle(s.Player.Position(), particle.BlockBreak{Block: block.Concrete{Colour: item.ColourRed()}})
-			s.Player.Hurt(1, damage.SourceInstantDamageEffect{})
+			s.Player.Hurt(1, effect.InstantDamageSource{})
 		}
 	}()
 }

@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"velvet/console"
+
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 )
@@ -20,6 +22,13 @@ func (t Tell) Run(source cmd.Source, output *cmd.Output) {
 		output.Printf(PlayerNotFound)
 		return
 	}
-	p.Messagef("§7[§d%v §7-> §dYou§7]: §e%v", source.Name(), string(t.Message))
+	name := "Server"
+	if _, ok := source.(*console.CommandSender); ok {
+		name = source.(*console.CommandSender).Name()
+	}
+	if _, ok := source.(*player.Player); ok {
+		name = source.(*player.Player).Name()
+	}
+	p.Messagef("§7[§d%v §7-> §dYou§7]: §e%v", name, string(t.Message))
 	output.Printf("§7[§dYou §7-> §d%v§7]: §e%v", p.Name(), string(t.Message))
 }

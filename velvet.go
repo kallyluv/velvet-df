@@ -2,13 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/chat"
-	"github.com/df-mc/dragonfly/server/world"
-	"github.com/oomph-ac/oomph"
-	"github.com/sandertv/gophertunnel/minecraft/text"
-	"github.com/sirupsen/logrus"
 	"log"
 	"math/rand"
 	"os"
@@ -17,6 +10,13 @@ import (
 	"velvet/handlers"
 	"velvet/utils"
 	"velvet/utils/worldmanager"
+
+	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/chat"
+	"github.com/df-mc/dragonfly/server/world"
+	"github.com/sandertv/gophertunnel/minecraft/text"
+	"github.com/sirupsen/logrus"
 )
 
 var logger = logrus.New()
@@ -91,6 +91,7 @@ func startServer() {
 	srv.Listen()
 
 	// AntiCheat start
+	/*
 	if config.Oomph.Enabled {
 		go func() {
 			ac := oomph.New(logger, config.Oomph.Address)
@@ -107,6 +108,7 @@ func startServer() {
 			}
 		}()
 	}
+	*/
 	// AntiCheat end
 
 	for srv.Accept(handleJoin) {

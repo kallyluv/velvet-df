@@ -16,8 +16,8 @@ func (v Potion) Use(w *world.World, user item.User, ctx *item.UseContext) bool {
 	held, _ := user.HeldItems()
 	it := held.Item().(item.SplashPotion)
 
-	yaw, pitch := user.Rotation()
-	e := ve.NewSplashPotion(entity.EyePosition(user), entity.DirectionVector(user).Mul(0.5), yaw, pitch, it.Type, user)
+	yaw, pitch := user.(world.Entity).Rotation().Yaw(), user.(world.Entity).Rotation().Pitch()
+	e := ve.NewSplashPotion(entity.EyePosition(user), user.(world.Entity).Rotation().Vec3().Mul(0.5), yaw, pitch, it.Type, user)
 	w.AddEntity(e)
 
 	w.PlaySound(user.Position(), sound.ItemThrow{})

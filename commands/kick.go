@@ -16,12 +16,12 @@ type Kick struct {
 
 func (t Kick) Run(source cmd.Source, output *cmd.Output) {
 	if target, ok := t.Player[0].(*player.Player); ok {
-		if target == source || (source.Name() != utils.Config.Staff.Owner.Name && session.Get(target).HasFlag(session.FlagStaff)) {
+		if target == source || (source.(*player.Player).Name() != utils.Config.Staff.Owner.Name && session.Get(target).HasFlag(session.FlagStaff)) {
 			output.Print(utils.Config.Message.CannotPunishPlayer)
 			return
 		}
-		target.Disconnect(fmt.Sprintf(utils.Config.Kick.Screen, source.Name(), string(t.Reason)))
-		_, _ = fmt.Fprintf(chat.Global, utils.Config.Kick.Broadcast+"\n", target.Name(), source.Name(), string(t.Reason))
+		target.Disconnect(fmt.Sprintf(utils.Config.Kick.Screen, source.(*player.Player).Name(), string(t.Reason)))
+		_, _ = fmt.Fprintf(chat.Global, utils.Config.Kick.Broadcast+"\n", target.Name(), source.(*player.Player).Name(), string(t.Reason))
 		return
 	}
 	output.Printf(PlayerNotFound)

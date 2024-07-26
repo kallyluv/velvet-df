@@ -24,6 +24,7 @@ func (p Punishment) Expired() bool {
 
 // Update saves the passed xuid for the ban.
 func (p Punishment) Update(ign, xuid string) {
+	return
 	_ = findBan(ign).Update(map[string]string{"xuid": xuid})
 }
 

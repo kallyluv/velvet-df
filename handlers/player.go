@@ -2,18 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/cmd"
-	"github.com/df-mc/dragonfly/server/entity"
-	"github.com/df-mc/dragonfly/server/entity/damage"
-	heal "github.com/df-mc/dragonfly/server/entity/healing"
-	"github.com/df-mc/dragonfly/server/event"
-	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/chat"
-	"github.com/df-mc/dragonfly/server/world"
-	"github.com/df-mc/we/palette"
-	"github.com/go-gl/mathgl/mgl64"
 	"strings"
 	"time"
 	"velvet/db"
@@ -24,6 +12,17 @@ import (
 	"velvet/session"
 	"velvet/utils"
 	"velvet/utils/enchants"
+
+	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/cmd"
+	"github.com/df-mc/dragonfly/server/entity"
+	"github.com/df-mc/dragonfly/server/event"
+	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/chat"
+	"github.com/df-mc/dragonfly/server/world"
+	"github.com/df-mc/we/palette"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 type PlayerHandler struct {
@@ -43,7 +42,7 @@ func (p *PlayerHandler) HandlePunchAir(_ *event.Context) {
 	p.Session.Click()
 }
 
-func (p *PlayerHandler) HandleBlockBreak(ctx *event.Context, pos cube.Pos, drops *[]item.Stack) {
+func (p *PlayerHandler) HandleBlockBreak(ctx *event.Context, pos cube.Pos, drops *[]item.Stack, _ *int) {
 	p.ph.HandleBlockBreak(ctx, pos, drops)
 	held, _ := p.Session.Player.HeldItems()
 	if _, ok := held.Value("wand"); ok {
@@ -73,7 +72,7 @@ func (p *PlayerHandler) HandleBlockPlace(ctx *event.Context, pos cube.Pos, _ wor
 	}
 }
 
-func (*PlayerHandler) HandleItemDrop(ctx *event.Context, _ *entity.Item) {
+func (*PlayerHandler) HandleItemDrop(ctx *event.Context, _ world.Entity) {
 	ctx.Cancel()
 }
 
@@ -122,22 +121,22 @@ func (p *PlayerHandler) HandleAttackEntity(_ *event.Context, e world.Entity, h *
 	}
 }
 
-func (p *PlayerHandler) HandleHurt(ctx *event.Context, _ *float64, attackImmunity *time.Duration, src damage.Source) {
-	if _, ok := src.(damage.SourceVoid); ok {
+func (p *PlayerHandler) HandleHurt(ctx *event.Context, _ *float64, attackImmunity *time.Duration, src world.DamageSource) {
+	if _, ok := src.(entity.VoidDamageSource); ok {
 		ctx.Cancel()
 		utils.Srv.World().AddEntity(p.Session.Player)
 		p.Session.Player.Teleport(utils.Srv.World().Spawn().Vec3())
 		return
 	}
 
-	if p.Session.Player.World() == utils.Srv.World() || src == (damage.SourceFall{}) {
+	if p.Session.Player.World() == utils.Srv.World() || src == ( entity.FallDamageSource{}) {
 		ctx.Cancel()
 		return
 	}
 
 	*attackImmunity = time.Millisecond * 475
 	p.Session.UpdateScoreTag(true, false)
-	if source, ok := src.(damage.SourceEntityAttack); ok {
+	if source, ok := src.(entity.AttackDamageSource); ok {
 		if t, ok := source.Attacker.(*player.Player); ok {
 			s := session.Get(t)
 			if !s.Combat().Tagged() {
@@ -152,11 +151,11 @@ func (p *PlayerHandler) HandleHurt(ctx *event.Context, _ *float64, attackImmunit
 	}
 }
 
-func (p *PlayerHandler) HandleHeal(_ *event.Context, _ *float64, _ heal.Source) {
+func (p *PlayerHandler) HandleHeal(_ *event.Context, _ *float64, _ world.HealingSource) {
 	p.Session.UpdateScoreTag(true, false)
 }
 
-func (*PlayerHandler) HandleFoodLoss(ctx *event.Context, _ int, _ int) {
+func (*PlayerHandler) HandleFoodLoss(ctx *event.Context, _ int, _ *int) {
 	ctx.Cancel()
 }
 
@@ -182,12 +181,13 @@ func (p *PlayerHandler) HandleRespawn(pos *mgl64.Vec3, w **world.World) {
 	game.DefaultKit(p.Session.Player)
 }
 
-func (p *PlayerHandler) HandleDeath(source damage.Source) {
+func (p *PlayerHandler) HandleDeath(source world.DamageSource, keepInv *bool) {
 	g := game.FromWorld(p.Session.Player.World().Name())
-	if source, ok := source.(damage.SourceEntityAttack); ok {
-		if g == nil {
-			_, _ = fmt.Fprintf(chat.Global, "§c%v was killed by %v", p.Session.Player.Name(), source.Attacker.Name())
-		} else {
+	if source, ok := source.(entity.AttackDamageSource); ok {
+		ap, isplayer := source.Attacker.(*player.Player)
+		if g == nil && isplayer {
+			_, _ = fmt.Fprintf(chat.Global, "§c%v was killed by %v", p.Session.Player.Name(), ap.Name())
+		} else if isplayer {
 			g.BroadcastDeathMessage(p.Session.Player, source.Attacker.(*player.Player))
 			if pl, ok := source.Attacker.(*player.Player); ok {
 				g.Kit(pl)
@@ -275,7 +275,7 @@ func (p *PlayerHandler) HandleQuit() {
 	if p.Session.Combat().Tagged() {
 		p.Session.Player.Inventory().Clear()
 		p.Session.Player.Armour().Clear()
-		p.Session.Player.Hurt(p.Session.Player.MaxHealth(), damage.SourceVoid{})
+		p.Session.Player.Hurt(p.Session.Player.MaxHealth(), entity.VoidDamageSource{})
 		_, _ = fmt.Fprintf(chat.Global, "§c%v died.", p.Session.Player.Name())
 	}
 

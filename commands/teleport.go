@@ -44,7 +44,7 @@ func (t TeleportToTarget) Run(source cmd.Source, output *cmd.Output) {
 		tg.World().AddEntity(p)
 	}
 	p.Teleport(tg.Position())
-	output.Printf(utils.Config.Message.TeleportSelfToPlayer, t.Player[0].Name())
+	output.Printf(utils.Config.Message.TeleportSelfToPlayer, t.Player[0].(*player.Player).Name())
 }
 
 func (t TeleportTargetToTarget) Run(source cmd.Source, output *cmd.Output) {
@@ -90,7 +90,7 @@ func teleportTargets(targets []cmd.Target, destination mgl64.Vec3, w *world.Worl
 	if len(targets) > 1 {
 		return strconv.Itoa(len(targets)) + " players"
 	}
-	return targets[0].Name()
+	return targets[0].(*player.Player).Name()
 }
 
 func (TeleportToPos) Allow(s cmd.Source) bool          { return checkStaff(s) }

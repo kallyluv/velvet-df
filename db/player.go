@@ -6,7 +6,6 @@ import (
 	"github.com/hako/durafmt"
 	"github.com/upper/db/v4"
 	"time"
-	"velvet/discord/webhook"
 	"velvet/utils"
 )
 
@@ -17,6 +16,7 @@ var (
 
 // GetBan gets the ban for a player, if the ban does not exist the boolean will be false.
 func GetBan(id string) (*Entry, Punishment, bool) {
+	return nil, Punishment{}, false/*
 	p, err := LoadOfflinePlayer(id)
 	if err != nil {
 		return nil, Punishment{}, false
@@ -25,7 +25,7 @@ func GetBan(id string) (*Entry, Punishment, bool) {
 		UnbanPlayer(id)
 		return nil, Punishment{}, false
 	}
-	return p, p.Punishments.Ban, true
+	return p, p.Punishments.Ban, true*/
 }
 
 // BanPlayer bans a player and handles everything such as the disconnection, broadcasting, and webhook.
@@ -46,6 +46,7 @@ func BanPlayer(target, mod, reason string, length time.Duration) {
 	} else {
 		_, _ = fmt.Fprintf(chat.Global, utils.Config.Ban.Broadcast, target, mod, lengthString, reason)
 	}
+	return/*
 	var expires time.Time
 	if length != 0 {
 		expires = time.Now().Add(length)
@@ -74,20 +75,22 @@ func BanPlayer(target, mod, reason string, length time.Duration) {
 			}},
 		}
 	}
-	webhook.Send(utils.Config.Discord.Webhook.BanLogger, msg)
+	webhook.Send(utils.Config.Discord.Webhook.BanLogger, msg)*/
 }
 
 // UnbanPlayer unbans a player.
 func UnbanPlayer(id string) {
+	return
 	_ = findBan(id).Delete()
 }
 
 // findBan is internally used to find a ban entry.
 func findBan(id string) db.Result {
+	return nil/*
 	return sess.Collection("punishments").Find(
 		db.And(
 			db.Or(db.Cond{"xuid": id}, db.Cond{"ign": id}),
 			db.Cond{"type": PunishmentTypeBan},
 		),
-	)
+	)*/
 }

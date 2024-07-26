@@ -7,7 +7,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/mcdb"
-	"github.com/df-mc/goleveldb/leveldb/opt"
 	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
@@ -71,7 +70,7 @@ func (m *WorldManager) LoadWorld(worldName string, dimension world.Dimension, ge
 		return fmt.Errorf("world is already loaded")
 	}
 
-	p, err := mcdb.New(m.log, m.folderPath+"/"+worldName, opt.DefaultCompressionType)
+	p, err := mcdb.Open(m.folderPath+"/"+worldName)
 	if err != nil {
 		return fmt.Errorf("error loading world: %v", err)
 	}
